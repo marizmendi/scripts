@@ -1,0 +1,3 @@
+boto3
+ping3
+pyYAML

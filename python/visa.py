@@ -7,15 +7,18 @@ WAIT_TIME = 3
 def check_visa():
     s = requests.Session()
 
-    url = "https://ais.usvisa-info.com/en-es/niv/schedule/34460182/appointment/days/7.json?appointments[expedite]=false"
+    # Log in with your username and password in https://ais.usvisa-info.com/es-es/niv/users/sign_in
+    # Get the _yatri_session cookie using your prefered browser developer tools
+    cookie = ""
+
+    # Click continue on your existing appointment and get the user_id from the URL: https://ais.usvisa-info.com/es-es/niv/schedule/<user_id>/continue_actions
+    user_id = ""
+
+    url = "https://ais.usvisa-info.com/en-es/niv/schedule/{}/appointment/days/7.json?appointments[expedite]=false".format(user_id)
     headers={
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:92.0) Gecko/20100101 Firefox/92.0",
         "Accept": "application/json, text/javascript, */*; q=0.01",
     }
-
-    # Log in with your username and password in https://ais.usvisa-info.com/es-es/niv/users/sign_in
-    # Get the _yatri_session cookie using your prefered browser developer tools
-    cookie = ""
 
     s.cookies.set("_yatri_session",cookie)
 

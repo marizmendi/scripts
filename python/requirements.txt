@@ -3,3 +3,4 @@ ping3
 pyYAML
 instaloader
 cloudflare
+requests

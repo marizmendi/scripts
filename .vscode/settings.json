@@ -1,5 +1,4 @@
 {
-    "python.pythonPath": ".venv/bin/python",
     "workbench.colorCustomizations": {
         "activityBar.background": "#792021",
         "activityBar.activeBackground": "#792021",
@@ -14,7 +13,10 @@
         "titleBar.inactiveForeground": "#e7e7e799",
         "statusBar.background": "#511516",
         "statusBarItem.hoverBackground": "#792021",
-        "statusBar.foreground": "#e7e7e7"
+        "statusBar.foreground": "#e7e7e7",
+        "sash.hoverBorder": "#792021",
+        "statusBarItem.remoteBackground": "#511516",
+        "statusBarItem.remoteForeground": "#e7e7e7"
     },
     "peacock.color": "#511516"
 }

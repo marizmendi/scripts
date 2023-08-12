@@ -19,5 +19,9 @@
         "statusBarItem.remoteForeground": "#e7e7e7",
         "commandCenter.border": "#e7e7e799"
     },
-    "peacock.color": "#511516"
+    "peacock.color": "#511516",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none"
 }

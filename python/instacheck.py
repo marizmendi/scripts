@@ -1,8 +1,14 @@
 import instaloader
 import requests
 import json
+import configparser
 
+config = configparser.ConfigParser()
 
+config.read("instaloader.cfg")
+
+USER = config["default"]["user"]
+UUID = config["default"]["uuid"]
 
 
 def noti(user):
@@ -10,7 +16,7 @@ def noti(user):
         "https://ntfy.sh/",
         data=json.dumps(
             {
-                "topic": f'{USER}_{UUID}',
+                "topic": f"{USER}_{UUID}",
                 "message": f"{user} is not following you!",
                 "actions": [
                     {

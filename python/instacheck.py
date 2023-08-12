@@ -2,10 +2,12 @@ import instaloader
 import requests
 import json
 import configparser
+import os
 
+file_path = os.path.dirname(os.path.realpath(__file__))
 config = configparser.ConfigParser()
 
-config.read("instaloader.cfg")
+config.read(f"{file_path}/instaloader.cfg")
 
 USER = config["default"]["user"]
 UUID = config["default"]["uuid"]

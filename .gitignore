@@ -1,2 +1,3 @@
 .venv/*
 instaloader.cfg
+.DS_Store

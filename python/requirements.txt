@@ -4,3 +4,4 @@ pyYAML
 instaloader
 cloudflare
 requests
+tqdm

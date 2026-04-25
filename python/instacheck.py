@@ -1,90 +1,90 @@
 import instaloader
 import getpass
 import sys
+import os
+import requests
 from pathlib import Path
 from tqdm import tqdm
 
+def send_ntfy(topic, message, title="InstaCheck Update"):
+    try:
+        requests.post(
+            f"https://ntfy.sh/{topic}",
+            data=message.encode('utf-8'),
+            headers={
+                "Title": title,
+                "Priority": "default",
+                "Tags": "camera,instagram"
+            }
+        )
+    except Exception as e:
+        print(f"Failed to send notification: {e}")
+
 def main():
     L = instaloader.Instaloader()
-
     username = "manmar92"
-    print(f"Using username: {username}")
+    ntfy_topic = "d3b8e7c2-9f1a-4b5d-8e6c-7a9b0c1d2e3f"
     
-    # Try to load session from default location
+    # Check if we are running in a non-interactive shell (like cron)
+    is_interactive = sys.stdin.isatty()
+
     try:
         L.load_session_from_file(username)
-        # Verify session
-        try:
-            logged_in_user = L.test_login()
-            if logged_in_user:
-                print(f"Session verified for {logged_in_user}.")
-            else:
-                print("Session loaded but verification failed. Re-logging in...")
-                raise FileNotFoundError
-        except Exception as e:
-            print(f"Session verification failed: {e}. Re-logging in...")
+        logged_in_user = L.test_login()
+        if not logged_in_user:
             raise FileNotFoundError
-            
     except FileNotFoundError:
-        # If session file doesn't exist, log in and save session
-        print(f"No session found for {username}. Logging in...")
+        if not is_interactive:
+            msg = "Session expired and running in non-interactive mode. Please run manually once to log in."
+            print(msg)
+            if ntfy_topic:
+                send_ntfy(ntfy_topic, msg, title="InstaCheck Error")
+            sys.exit(1)
+            
+        print(f"No valid session found for {username}. Logging in...")
         password = getpass.getpass(f"Enter password for {username}: ")
         try:
             L.login(username, password)
             L.save_session_to_file()
-            print("Login successful and session saved.")
-        except instaloader.exceptions.BadCredentialsException:
-            print("Error: Invalid username or password.")
-            sys.exit(1)
-        except instaloader.exceptions.TwoFactorAuthRequiredException:
-            print("Two-factor authentication is required.")
-            code = input("Enter 2FA code: ")
-            try:
-                L.two_factor_login(code)
-                L.save_session_to_file()
-                print("2FA Login successful and session saved.")
-            except Exception as e:
-                print(f"Failed to complete 2FA login: {e}")
-                sys.exit(1)
         except Exception as e:
-            print(f"An error occurred during login: {e}")
+            print(f"Login failed: {e}")
             sys.exit(1)
 
-    print("\nFetching followers and followees. This may take a while if you have many followers...")
     try:
         profile = instaloader.Profile.from_username(L.context, username)
         
-        print(f"Getting {profile.followers} followers...")
-        followers = set()
-        for follower in tqdm(profile.get_followers(), total=profile.followers, unit="user"):
-            followers.add(follower.username)
-        
-        print(f"Getting {profile.followees} accounts you follow (followees)...")
-        followees = set()
-        for followee in tqdm(profile.get_followees(), total=profile.followees, unit="user"):
-            followees.add(followee.username)
-        
+        # Collect followers/followees
+        followers = {f.username for f in profile.get_followers()}
+        followees = {f.username for f in profile.get_followees()}
         non_followers = followees - followers
 
+        # Build report
+        report = []
+        report.append(f"Followers: {len(followers)}")
+        report.append(f"Following: {len(followees)}")
+        report.append(f"Not following back: {len(non_followers)}")
+        
+        if non_followers:
+            report.append("\nUsers who don't follow you back:")
+            for user in sorted(non_followers):
+                report.append(f"- {user}")
+        else:
+            report.append("\nEveryone you follow follows you back! 🎉")
+
+        full_report = "\n".join(report)
         print("\n" + "="*40)
         print(f"RESULTS FOR {username}")
         print("="*40)
-        print(f"Followers: {len(followers)}")
-        print(f"Following: {len(followees)}")
-        print(f"Not following you back: {len(non_followers)}")
-        print("-" * 40)
-        
-        if non_followers:
-            print("Users who don't follow you back:")
-            for user in sorted(non_followers):
-                print(f"- {user}")
-        else:
-            print("Everyone you follow follows you back! 🎉")
+        print(full_report)
+
+        if ntfy_topic and non_followers:
+            send_ntfy(ntfy_topic, full_report, title=f"InstaCheck: {username}")
             
-    except instaloader.exceptions.LoginRequiredException:
-        print("Error: Session expired or login required.")
     except Exception as e:
-        print(f"An error occurred: {e}")
+        error_msg = f"An error occurred: {e}"
+        print(error_msg)
+        if ntfy_topic:
+            send_ntfy(ntfy_topic, error_msg, title="InstaCheck Error")
 
 if __name__ == "__main__":
     main()
